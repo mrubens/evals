@@ -1,4 +1,4 @@
-# Roo Code Evals
+# Roo Code Roovals
 
 This is based on the outstanding work done by [Aider](https://aider.chat/2024/12/21/polyglot.html).
 
