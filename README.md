@@ -1,6 +1,10 @@
 # Roo Code Evals
 
 A comprehensive polyglot evaluation suite for testing code generation capabilities across multiple programming languages. This project is based on the outstanding work done by [Aider](https://aider.chat/2024/12/21/polyglot.html).
+> *Code tests await,*  
+> *Five languages intertwine—*  
+> *Solutions take shape.*
+
 
 ## Overview
 
