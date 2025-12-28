@@ -1,0 +1,154 @@
+From 4696ffa5ee feat(ROO-18): Add support task viewing with permission-based access control
+
+This patch adds support task viewing capabilities to Roo Code Cloud with permission-based access control.
+
+To apply this patch to the Roo-Code repository:
+  cd /path/to/Roo-Code
+  git apply /path/to/this/implementation.patch
+
+---
+diff --git a/packages/types/src/cloud.ts b/packages/types/src/cloud.ts
+index abc123..def456 100644
+--- a/packages/types/src/cloud.ts
++++ b/packages/types/src/cloud.ts
+@@ -127,6 +127,32 @@ const workspaceTaskVisibilitySchema = z.enum(["all", "list-only", "admins-and-c
+ 
+ export type WorkspaceTaskVisibility = z.infer<typeof workspaceTaskVisibilitySchema>
+ 
++/**
++ * SupportAccessPermission
++ */
++
++export const supportAccessLevelSchema = z.enum(["none", "metadata", "full"])
++
++export type SupportAccessLevel = z.infer<typeof supportAccessLevelSchema>
++
++export const supportAccessPermissionSchema = z.object({
++	enabled: z.boolean(),
++	level: supportAccessLevelSchema,
++	expiresAt: z.number().optional(), // Unix timestamp
++})
++
++export type SupportAccessPermission = z.infer<typeof supportAccessPermissionSchema>
++
++/**
++ * TaskAccessPermissions
++ */
++
++export const taskAccessPermissionsSchema = z.object({
++	taskId: z.string(),
++	userId: z.string(),
++	grantedBy: z.string(),
++	grantedAt: z.number(), // Unix timestamp
++	supportAccess: supportAccessPermissionSchema,
++})
++
++export type TaskAccessPermissions = z.infer<typeof taskAccessPermissionsSchema>
+ 
+ /**
+  * OrganizationCloudSettings
+
+diff --git a/packages/cloud/src/CloudAPI.ts b/packages/cloud/src/CloudAPI.ts
+index abc123..def456 100644
+--- a/packages/cloud/src/CloudAPI.ts
++++ b/packages/cloud/src/CloudAPI.ts
+@@ -1,6 +1,13 @@
+ import { z } from "zod"
+ 
+-import { type AuthService, type ShareVisibility, type ShareResponse, shareResponseSchema } from "@roo-code/types"
++import {
++	type AuthService,
++	type ShareVisibility,
++	type ShareResponse,
++	shareResponseSchema,
++	type SupportAccessPermission,
++	supportAccessPermissionSchema,
++	type TaskAccessPermissions,
++	taskAccessPermissionsSchema,
++} from "@roo-code/types"
+ 
+ import { getRooCodeApiUrl } from "./config.js"
+@@ -147,4 +154,89 @@ export class CloudAPI {
+ 			},
+ 		})
+ 	}
++
++	/**
++	 * Grant support access to a specific task
++	 * @param taskId - The ID of the task to grant access to
++	 * @param level - The level of access to grant (metadata or full)
++	 * @param expiresAt - Optional expiration timestamp (Unix timestamp in milliseconds)
++	 * @returns The created support access permission
++	 */
++	async grantSupportAccess(
++		taskId: string,
++		level: "metadata" | "full",
++		expiresAt?: number,
++	): Promise<TaskAccessPermissions> {
++		this.log(`[CloudAPI] Granting support access to task ${taskId} with level: ${level}`)
++
++		return this.request("/api/extension/support/grant-access", {
++			method: "POST",
++			body: JSON.stringify({ taskId, level, expiresAt }),
++			parseResponse: (data) => taskAccessPermissionsSchema.parse(data),
++		})
++	}
++
++	/**
++	 * Revoke support access from a specific task
++	 * @param taskId - The ID of the task to revoke access from
++	 * @returns Success response
++	 */
++	async revokeSupportAccess(taskId: string): Promise<{ success: boolean }> {
++		this.log(`[CloudAPI] Revoking support access from task ${taskId}`)
++
++		return this.request("/api/extension/support/revoke-access", {
++			method: "POST",
++			body: JSON.stringify({ taskId }),
++			parseResponse: (data) => z.object({ success: z.boolean() }).parse(data),
++		})
++	}
++
++	/**
++	 * Get all tasks that the current user (support) has been granted access to
++	 * @returns Array of task access permissions
++	 */
++	async getSupportAccessibleTasks(): Promise<TaskAccessPermissions[]> {
++		this.log("[CloudAPI] Fetching support accessible tasks")
++
++		return this.request("/api/extension/support/accessible-tasks", {
++			method: "GET",
++			parseResponse: (data) => z.array(taskAccessPermissionsSchema).parse(data),
++		})
++	}
++
++	/**
++	 * Check if the current user has support access to a specific task
++	 * @param taskId - The ID of the task to check
++	 * @returns The support access permission if granted, null otherwise
++	 */
++	async checkSupportAccess(taskId: string): Promise<SupportAccessPermission | null> {
++		this.log(`[CloudAPI] Checking support access for task ${taskId}`)
++
++		return this.request(`/api/extension/support/check-access/${taskId}`, {
++			method: "GET",
++			parseResponse: (data) => {
++				if (data === null) return null
++				return supportAccessPermissionSchema.parse(data)
++			},
++		})
++	}
++
++	/**
++	 * Get task details with support access (requires support permission)
++	 * @param taskId - The ID of the task to retrieve
++	 * @returns Task details based on access level
++	 */
++	async getSupportTaskDetails(taskId: string): Promise<any> {
++		this.log(`[CloudAPI] Fetching task details for support: ${taskId}`)
++
++		return this.request(`/api/extension/support/task/${taskId}`, {
++			method: "GET",
++		})
++	}
+ }

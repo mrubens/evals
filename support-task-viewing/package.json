@@ -1,0 +1,31 @@
+{
+  "name": "@roocode/support-task-viewing-eval",
+  "version": "1.0.0",
+  "description": "Evaluation tests for support team task viewing with permission controls",
+  "author": "Roo Code Team",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrubens/evals",
+    "directory": "support-task-viewing"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.2",
+    "@babel/preset-typescript": "^7.24.7",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.12",
+    "babel-jest": "^29.6.4",
+    "core-js": "~3.37.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "packageManager": "pnpm@10.7.0"
+}
