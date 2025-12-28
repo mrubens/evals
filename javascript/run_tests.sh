@@ -2,6 +2,15 @@
 
 # https://github.com/exercism/javascript/blob/main/docs/TESTS.md
 
+# Check test guard to prevent infinite loops (unless called from parent script)
+if [ -z "$ROO_EVALS_PARENT_GUARD" ]; then
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if ! "$script_dir/../test_guard.sh"; then
+    exit 1
+  fi
+  export ROO_EVALS_PARENT_GUARD=1
+fi
+
 lang="javascript"
 success_count=0
 failure_count=0
