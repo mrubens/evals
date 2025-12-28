@@ -1,223 +1,170 @@
-# Support Task Viewing Evaluation
+# ROO-18: Support Task Viewing with Permission-Based Access Control
 
-This evaluation tests the implementation of a task viewing system with granular permission controls for support teams.
+This directory contains documentation and implementation details for the support task viewing feature.
 
 ## Overview
 
-The Task Viewer system allows organizations to:
-- Control which tasks support staff can view based on permissions
-- Define granular permission rules with conditions
-- Filter and search tasks based on user permissions
-- Track task statistics visible to each user
+This feature enables users to grant support staff permission-based access to their Roo Code Cloud tasks. Support can view task details to help troubleshoot issues while maintaining user privacy and control.
 
-## Features
+## Implementation Summary
 
-### Permission-Based Access Control
+The implementation adds permission-based task viewing capabilities to the Roo Code Cloud platform with the following components:
 
-The system supports multiple permission types:
+### 1. Type Definitions (`@roo-code/types`)
 
-1. **View Assigned Tasks** - Users can only view tasks assigned to them
-2. **View Team Tasks** - Users can view all tasks in their team
-3. **View All Tasks** - Admin-level access to all tasks
-4. **View Tasks by Tags** - Access tasks with specific tags
-5. **Custom Conditions** - Define complex permission rules
-
-### User Roles
-
-- **Admin** - Full access to all tasks and operations
-- **Support** - Limited access based on assigned permissions
-- **User** - Restricted access, typically only assigned tasks
-
-### Operations
-
-- Get viewable tasks for a user
-- Get specific task by ID (if user has permission)
-- Filter tasks by status, priority, team, or assignee
-- Search tasks by title or description
-- Get task statistics (counts by status and priority)
-
-## Usage
-
-### Basic Example
+Added to `packages/types/src/cloud.ts`:
 
 ```typescript
-import { TaskViewer, PermissionPresets } from './task-viewer';
+// Support access levels
+export const supportAccessLevelSchema = z.enum(["none", "metadata", "full"])
+export type SupportAccessLevel = z.infer<typeof supportAccessLevelSchema>
 
-// Create a task viewer
-const viewer = new TaskViewer(tasks);
+// Permission details
+export const supportAccessPermissionSchema = z.object({
+  enabled: z.boolean(),
+  level: supportAccessLevelSchema,
+  expiresAt: z.number().optional(), // Unix timestamp
+})
+export type SupportAccessPermission = z.infer<typeof supportAccessPermissionSchema>
 
-// Define a support user with team-based permissions
-const supportUser = {
-  id: 'support-1',
-  name: 'Support Agent',
-  role: 'support',
-  permissions: [
-    PermissionPresets.viewTeamTasks('team-support'),
-    PermissionPresets.viewAssignedTasks(),
-  ],
-};
-
-// Get all tasks the user can view
-const viewableTasks = viewer.getViewableTasks(supportUser);
-
-// Search for specific tasks
-const searchResults = viewer.searchTasks(supportUser, 'bug');
-
-// Get task statistics
-const stats = viewer.getTaskStats(supportUser);
-console.log(`User can view ${stats.total} tasks`);
+// Complete permission record
+export const taskAccessPermissionsSchema = z.object({
+  taskId: z.string(),
+  userId: z.string(),
+  grantedBy: z.string(),
+  grantedAt: z.number(),
+  supportAccess: supportAccessPermissionSchema,
+})
+export type TaskAccessPermissions = z.infer<typeof taskAccessPermissionsSchema>
 ```
 
-### Custom Permissions
+### 2. API Methods (`@roo-code/cloud`)
+
+Added to `packages/cloud/src/CloudAPI.ts`:
+
+#### `grantSupportAccess(taskId, level, expiresAt?): Promise<TaskAccessPermissions>`
+Grants support access to a specific task with configurable access level and optional expiration.
+
+#### `revokeSupportAccess(taskId): Promise<{ success: boolean }>`
+Revokes support access from a task.
+
+#### `getSupportAccessibleTasks(): Promise<TaskAccessPermissions[]>`
+Returns all tasks the current support user has permission to access.
+
+#### `checkSupportAccess(taskId): Promise<SupportAccessPermission | null>`
+Checks if the current user has support access to a specific task.
+
+#### `getSupportTaskDetails(taskId): Promise<any>`
+Retrieves task details with permission validation (requires support access).
+
+### 3. Permission Levels
+
+- **`metadata`**: Support can view basic task information (description, images, status, timestamps)
+- **`full`**: Support can view complete task details including messages and history
+
+## Use Cases
+
+### User Grants Access
 
 ```typescript
-// Define a custom permission
-const customPermission = {
-  resource: 'task',
-  action: 'view',
-  conditions: [
-    {
-      field: 'priority',
-      operator: 'in',
-      value: ['high', 'critical'],
-    },
-    {
-      field: 'status',
-      operator: 'equals',
-      value: 'open',
-    },
-  ],
-};
-
-// User can only view open high/critical priority tasks
-const user = {
-  id: 'user-1',
-  name: 'Priority User',
-  role: 'support',
-  permissions: [customPermission],
-};
+// User experiencing issues grants support metadata access for 24 hours
+const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
+await cloudAPI.grantSupportAccess('task-123', 'metadata', expiresAt);
 ```
+
+### Support Views Tasks
+
+```typescript
+// Support staff lists all accessible tasks
+const tasks = await cloudAPI.getSupportAccessibleTasks();
+
+// Check access before viewing
+const access = await cloudAPI.checkSupportAccess('task-123');
+if (access?.enabled) {
+  const details = await cloudAPI.getSupportTaskDetails('task-123');
+}
+```
+
+### User Revokes Access
+
+```typescript
+// After issue is resolved, user revokes access
+await cloudAPI.revokeSupportAccess('task-123');
+```
+
+## Security Features
+
+1. **Time-based Expiration**: Permissions automatically expire after specified duration
+2. **Minimal Access Principle**: Default to `metadata` level unless full access needed
+3. **Audit Trail**: All permissions tracked with timestamps and grantor information
+4. **User Control**: Users can revoke access at any time
+5. **Authentication Required**: All endpoints require valid session tokens
+
+## Backend Requirements
+
+The backend API must implement these endpoints:
+
+- `POST /api/extension/support/grant-access`
+  - Body: `{ taskId, level, expiresAt? }`
+  - Returns: `TaskAccessPermissions`
+
+- `POST /api/extension/support/revoke-access`
+  - Body: `{ taskId }`
+  - Returns: `{ success: boolean }`
+
+- `GET /api/extension/support/accessible-tasks`
+  - Returns: `TaskAccessPermissions[]`
+
+- `GET /api/extension/support/check-access/:taskId`
+  - Returns: `SupportAccessPermission | null`
+
+- `GET /api/extension/support/task/:taskId`
+  - Returns: Task details based on access level
 
 ## Testing
 
-### Run Tests
+Comprehensive test suite included in `packages/cloud/src/__tests__/CloudAPI.supportAccess.spec.ts` covering:
 
-```bash
-# Run all tests
-pnpm test
+- ✅ Granting access with and without expiration
+- ✅ Revoking access
+- ✅ Fetching accessible tasks list
+- ✅ Checking specific task permissions
+- ✅ Retrieving task details with permissions
+- ✅ Error handling (401, 404, etc.)
 
-# Run tests in watch mode
-pnpm test:watch
+## Implementation Files
 
-# Run with coverage
-pnpm test:coverage
-```
+The following files contain the implementation:
 
-### Test Coverage
+1. **`Roo-Code/packages/types/src/cloud.ts`**
+   - Type definitions for support access permissions
 
-The test suite includes comprehensive coverage of:
+2. **`Roo-Code/packages/cloud/src/CloudAPI.ts`**
+   - API methods for support access management
 
-- ✅ Permission checking for different user roles
-- ✅ Viewing tasks based on permissions
-- ✅ Filtering tasks by various criteria
-- ✅ Searching tasks with permission enforcement
-- ✅ Task statistics generation
-- ✅ Custom permission conditions
-- ✅ Edge cases and error scenarios
-- ✅ Multiple permission combinations
+3. **`Roo-Code/packages/cloud/src/__tests__/CloudAPI.supportAccess.spec.ts`**
+   - Comprehensive test suite
 
-Target coverage: 80% minimum across all metrics (branches, functions, lines, statements)
+4. **`Roo-Code/packages/cloud/docs/support-access.md`**
+   - Detailed documentation with examples
 
-## Implementation Details
+## Benefits
 
-### Permission Evaluation
-
-Permissions are evaluated using a condition-based system:
-
-1. Admin users bypass all permission checks
-2. For other users, iterate through their permissions
-3. Check if permission matches the resource and action
-4. Evaluate all conditions (if any) - all must be satisfied
-5. If any permission grants access, user has permission
-
-### Condition Operators
-
-- **equals** - Field value must exactly match
-- **contains** - For arrays: value is in array; for strings: substring match
-- **in** - Field value must be in the provided array
-
-### Special Fields
-
-- **$userId** - Dynamically resolves to the current user's ID (useful for "assigned to me" conditions)
-
-## Real-World Use Cases
-
-### Customer Support
-
-```typescript
-// Support agents can view:
-// 1. All tickets in their assigned team
-// 2. Any ticket assigned to them personally
-const supportAgent = {
-  id: 'agent-1',
-  role: 'support',
-  permissions: [
-    PermissionPresets.viewTeamTasks('team-customer-support'),
-    PermissionPresets.viewAssignedTasks(),
-  ],
-};
-```
-
-### Security Team
-
-```typescript
-// Security team members can view all security-related tasks
-const securityAnalyst = {
-  id: 'sec-1',
-  role: 'support',
-  permissions: [
-    PermissionPresets.viewTasksByTags(['security', 'vulnerability']),
-  ],
-};
-```
-
-### Manager
-
-```typescript
-// Managers can view all tasks in multiple teams
-const manager = {
-  id: 'mgr-1',
-  role: 'support',
-  permissions: [
-    PermissionPresets.viewTeamTasks('team-support'),
-    PermissionPresets.viewTeamTasks('team-engineering'),
-    PermissionPresets.viewTeamTasks('team-qa'),
-  ],
-};
-```
-
-## Architecture
-
-The system follows these design principles:
-
-- **Least Privilege** - Users only see what they need
-- **Explicit Permissions** - No implicit access grants
-- **Composable Rules** - Combine multiple permissions
-- **Auditable** - Clear permission evaluation path
-- **Testable** - Comprehensive test coverage
+- **Improved Support Experience**: Support can view actual task data to diagnose issues
+- **User Privacy**: Users control what support can access and for how long
+- **Security**: Time-limited, revocable, and audited access
+- **Flexibility**: Two access levels for different support needs
+- **Scalability**: Organization-level support roles can be added later
 
 ## Future Enhancements
 
-Potential additions to the system:
+- Organization-level support role with global permissions
+- Automated expiration cleanup
+- Access notification system
+- Detailed audit logs
+- More granular permission controls
+- Multi-tier support levels
 
-- [ ] Time-based permissions (valid only during certain hours/dates)
-- [ ] Hierarchical permissions (manager sees team members' accessible tasks)
-- [ ] Permission delegation (temporary access grants)
-- [ ] Audit logging (track who viewed what)
-- [ ] Permission caching (optimize repeated checks)
-- [ ] Bulk permission operations
-- [ ] Permission templates (role-based presets)
+## Related Issues
 
-## License
-
-MIT - See repository LICENSE file for details.
+- [ROO-18](https://linear.app/roocode/issue/ROO-18/create-a-way-for-support-to-view-tasks-given-permission) - Original Linear issue
