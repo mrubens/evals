@@ -31,6 +31,14 @@ Because light attracts bugs! 🐛
 
 ---
 
+## A Coder's Haiku
+
+Code hops through the files
+Roo's tail thumps with each green test
+Bugs flee from her pouch
+
+---
+
 ## The Tale of Roo the Coding Kangaroo
 
 Once upon a time in the Australian outback, there lived a kangaroo named Roo who loved to code. Roo was known throughout the land for her exceptional jumping ability and her even more exceptional debugging skills.
