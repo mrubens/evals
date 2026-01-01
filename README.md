@@ -1,6 +1,20 @@
 # Roo Code Evals - A Polyglot Collection of Coding Exercises and Solutions from Exercism
 > **Why do programmers prefer dark mode?** Because light attracts bugs! 🐛
 
+```
+                        (\___/)
+                        (o^.^o)
+                        (")_(")
+                      /|       |\
+                     / |       | \
+                    /  |       |  \
+                   /   |       |   \
+                  /    |_______|    \
+                 /                   \
+                /   Roo the Coding    \
+               /       Kangaroo!       \
+              /_________________________\
+```
 
 This is based on the outstanding work done by [Aider](https://aider.chat/2024/12/21/polyglot.html).
 
