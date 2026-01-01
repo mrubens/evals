@@ -67,3 +67,34 @@ One day, Roo discovered Exercism and was amazed by the polyglot collection of co
 And so Roo began her coding journey, bouncing from Python to JavaScript, leaping through Rust and Java, and making great bounds in Go. Each exercise she completed made her a better programmer, and she learned that the best way to master coding was through practice, persistence, and a willingness to jump into new challenges.
 
 Today, Roo continues to code under her favorite tree, inspiring other kangaroos (and developers everywhere) to embrace the joy of learning, one exercise at a time. After all, whether you're hopping across the outback or jumping between programming languages, the journey is what matters most.
+
+---
+
+```
+                       |\___/|
+                      /       \
+                     |  ^   ^  |
+                     |  (o o)  |
+                     \   \_/   /
+                      \  ___  /
+                      /|     |\
+                     / |     | \
+                    /  |     |  \
+                   /   |_____|   \
+                  |    | /=\ |    |
+                   \   |/   \|   /
+                    \  |     |  /
+                     \_|     |_/
+                       |  _  |
+                      /| (_) |\
+                     / |     | \
+                    /  |     |  \
+                   |   |     |   |
+                   |   |     |   |
+                  /|   |     |   |\
+                 / |   |     |   | \
+                /  |___|     |___|  \
+               (_____)       (_____)
+
+           Happy coding from Roo! 🦘
+```
