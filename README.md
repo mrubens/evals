@@ -54,8 +54,6 @@ And that's why, to this day, developers say that the best way to fix a bug is to
 The moral of the story? Sometimes the best debugging technique is knowing when to hop over the details and when to land on the specifics.
 
 
----
-
 ## The Tale of Roo the Code Kangaroo
 
 Once upon a time in the Australian outback, there lived a kangaroo named Roo who had an unusual passion: coding. While other kangaroos spent their days hopping across the plains, Roo could be found under the shade of a eucalyptus tree, laptop balanced on her pouch, debugging algorithms and refactoring code.
@@ -67,3 +65,11 @@ One day, Roo discovered Exercism and was amazed by the polyglot collection of co
 And so Roo began her coding journey, bouncing from Python to JavaScript, leaping through Rust and Java, and making great bounds in Go. Each exercise she completed made her a better programmer, and she learned that the best way to master coding was through practice, persistence, and a willingness to jump into new challenges.
 
 Today, Roo continues to code under her favorite tree, inspiring other kangaroos (and developers everywhere) to embrace the joy of learning, one exercise at a time. After all, whether you're hopping across the outback or jumping between programming languages, the journey is what matters most.
+
+---
+
+## A Final Reflection
+
+Tests turn green at last
+Roo bounds through code with great joy
+Learning never ends
