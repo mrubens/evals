@@ -37,6 +37,10 @@ Code hops through the files
 Roo's tail thumps with each green test
 Bugs flee from her pouch
 
+Tests pass in silence
+Functions refactored with care
+Clean code brings much peace
+
 ---
 
 ## The Tale of Roo the Coding Kangaroo
