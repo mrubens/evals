@@ -1,14 +1,15 @@
-//
-// This is only a SKELETON file for the 'Binary' exercise. It's been provided as a
-// convenience to get you started writing code faster.
-//
-
 export class Binary {
-  constructor() {
-    throw new Error('Remove this statement and implement this function');
+  constructor(binaryString) {
+    this.binaryString = binaryString;
   }
 
   toDecimal() {
-    throw new Error('Remove this statement and implement this function');
+    // Check if the string contains only 0s and 1s
+    if (!/^[01]+$/.test(this.binaryString)) {
+      return null;
+    }
+
+    // Convert binary to decimal
+    return parseInt(this.binaryString, 2);
   }
 }
