@@ -19,6 +19,23 @@ All exercise content is copyright © [Exercism](https://exercism.org). These exe
 
 Please visit [Exercism](https://exercism.org) or the repos above to see licensing of these coding exercises.
 
+## How to Run Tests
+
+Each language track has its own test runner. You can run all tests across every language at once:
+
+```bash
+./run_tests.sh
+```
+
+Or run tests for a single language by navigating into its directory:
+
+```bash
+cd javascript && ./run_tests.sh
+cd rust && ./run_tests.sh
+cd go && ./run_tests.sh
+cd java && ./run_tests.sh
+cd python && ./run_tests.sh
+```
 
 ---
 
